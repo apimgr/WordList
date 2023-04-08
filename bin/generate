@@ -23,28 +23,24 @@ USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
-WORD_LiST="words.json"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+BASE_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
+WORD_LiST="$BASE_DIR/api/words.json"
 TEXT_FILE="https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create directories
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Define variables
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Export variables
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-printf '%s\n' "Creating the wordlist"
-printf '{ "words": [\n' >"$WORD_LiST"
-curl -q -LSsf "$TEXT_FILE" | awk '{print $2}' | sed 's|^|"|g;s|$|",|g' >>"$WORD_LiST"
-printf '"end"\n]\n}\n' >>"$WORD_LiST"
-test_results="$(jq -r '.words|.[]' <"$WORD_LiST" 2>/dev/null | sort -uR | head -n5|tr '\n' ' ' | grep '^')"
-if [ -n "$test_results" ]; then
-printf '%s\n' "$test_results"
+if [ -f "$WORD_LiST" ]; then
+  test_results="$(jq -r '.words|.[]' <"$WORD_LiST" 2>/dev/null | sort -uR | head -n6 | tr '\n' ' ' | grep '^')"
+  if [ -n "$test_results" ]; then
+    printf '%s\n' "$test_results"
+  else
+    printf '%s\n' "Something went wrong"
+  fi
 else
-printf '%s\n' "Something went wrong"
+  printf '%s\n' "The wordlist file does not exist"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
